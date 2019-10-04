@@ -1,0 +1,52 @@
+from __future__ import print_function
+import rapid7vmconsole
+import base64
+import logging
+import sys
+import requests
+
+config = rapid7vmconsole.Configuration(name='Rapid7')
+config.username = 'twilliams_7yhf4'
+config.password = '(Z74gdSckq5myvWiLQ'
+config.host = 'https://rapid7.mlbcsi.com:3780'
+config.verify_ssl = False
+config.assert_hostname = False
+config.proxy = None
+config.ssl_ca_cert = None
+config.connection_pool_maxsize = None
+config.cert_file = None
+config.key_file = None
+config.safe_chars_for_path_param = ''
+
+# Logging
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+ch = logging.StreamHandler(sys.stdout)
+ch.setLevel(logging.INFO)
+logger.addHandler(ch)
+config.debug = False
+
+
+auth = "%s:%s" % (config.username, config.password)
+auth = base64.b64encode(auth.encode('ascii')).decode()
+client = rapid7vmconsole.ApiClient(configuration=config)
+client.default_headers['Authorization'] = "Basic %s" % auth
+
+url = "https://rapid7.mlbcsi.com:3780/api/3/asset_groups/"
+
+
+asset_api = rapid7vmconsole.AssetGroupApi(client)
+asset_group = rapid7vmconsole.AssetGroup(name='PythonTestGroup', type='dynamic', description='created asset group', vulnerabilities='unknown', search_criteria={
+        "filters":
+            [{"field": "custom-tag",
+           "operator": "is",
+           "value": "padres"},
+           {"field": "custom-tag",
+           "operator": "starts-with",
+           "value": "CVE"},
+           {"field": "custom-tag",
+           "operator": "is-not",
+           "value": "honeypot"}],
+       "match": "all"},)
+created_group = asset_api.create_asset_group(asset_group=asset_group)
+print(created_group)
