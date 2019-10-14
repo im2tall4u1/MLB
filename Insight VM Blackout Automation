@@ -1,0 +1,128 @@
+import selenium
+from selenium import webdriver
+import requests
+from bs4 import BeautifulSoup
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.select import Select
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
+import time
+import csv
+
+
+
+
+"""Getting the browser up and running"""
+
+chrome_options = Options()
+chrome_options.add_argument('--kiosk')
+chrome_options.add_argument('--disable-infobars')
+#chrome_options.add_argument('user-data-dir=selenium')
+
+browser = webdriver.Chrome(chrome_options=chrome_options)
+type(browser)
+
+"""Starting the automation process w/ settings"""
+
+
+url = 'https://rapid7.mlbcsi.com:3780/login.jsp'
+browser.get(url)
+browser.implicitly_wait(12)
+
+
+"""Insertion of username and password and login"""
+
+userElem = browser.find_element_by_id('nexposeccusername')
+userElem.send_keys('twilliams_7yhf4')
+passElem = browser.find_element_by_id('nexposeccpassword')
+passElem.send_keys('(Z74gdSckq5myvWiLQ')
+loginElem = browser.find_element_by_id('login_button')
+loginElem.click()
+
+
+
+"""Getting to desired location (blackout creation)"""
+
+
+def create_blackout(siteid, date, hour, minute, time_period, duration):
+
+
+    # Goes to assets
+    time.sleep(3)
+    assetsElem = browser.find_element_by_id('Assets')
+    WebDriverWait(browser, 10).until(EC.presence_of_all_elements_located)
+    assetsElem.click()
+
+    # Goes to sites
+    time.sleep(3)
+    sitesElem = browser.find_element_by_id('totalSites')
+    WebDriverWait(browser, 10).until(EC.presence_of_all_elements_located)
+    sitesElem.click()
+
+
+    # Launches the desired site
+
+    testsite = "https://rapid7.mlbcsi.com:3780/site.jsp?siteid=" + siteid
+    browser.get(testsite)
+    WebDriverWait(browser, 10).until(EC.presence_of_all_elements_located)
+
+
+    # Clicks 'manage site' button
+
+    managesiteElem = browser.find_element_by_id('manage_site_button')
+    managesiteElem.click()
+
+    # Clicks scheduling button
+
+    scheduleElem = browser.find_element_by_xpath('/html/body/div[3]/div[1]/div[2]/div[1]/ul/li[7]/div/label')
+    scheduleElem.click()
+
+    # Clicks create blackout
+
+    blackoutElem = browser.find_element_by_xpath('/html/body/div[3]/div[1]/div[2]/div[2]/div/div/ul/li[4]/a[1]')
+    blackoutElem.click()
+
+    # Inserts Date, time (the hour and minute), time period and duration of the blackout
+
+    dateElem = browser.find_element_by_xpath('/html/body/div[3]/div[1]/div[2]/div[2]/div/div/div/div/ng-include/div/form/fieldset/div[6]/div[1]/div[2]/input')
+    browser.execute_script("arguments[0].removeAttribute('readonly')", dateElem);
+    dateElem.clear()
+    dateElem.send_keys(date)
+
+    hourElem = browser.find_element_by_id("scanBlackoutHour")
+    hourElem.send_keys(hour)
+
+    minuteElem = browser.find_element_by_id("scanBlackoutMinute")
+    minuteElem.send_keys(minute)
+
+    am_or_pm = Select(browser.find_element_by_id("scanBlackoutTimeFrame"))
+    am_or_pm.select_by_index(0)
+
+    durationElem = browser.find_element_by_xpath('/html/body/div[3]/div[1]/div[2]/div[2]/div/div/div/div/ng-include/div/form/fieldset/div[12]/div[6]/input')
+    durationElem.send_keys(duration)
+    time.sleep(3)
+
+    # Saves the created blackout date
+
+    saveElem = browser.find_element_by_xpath('/html/body/div[3]/div[1]/div[2]/div[2]/div/div/div/div/ng-include/div/form/fieldset/div[17]/div[2]/button')
+    saveElem.click()
+    time.sleep(2)
+
+    # Saves scheduling
+
+    savescanElem = browser.find_element_by_xpath('/html/body/div[3]/div[1]/div[1]/div[2]/div/button[3]')
+    savescanElem.click()
+    time.sleep(2)
+
+
+test_doc = open('/Users/trent.williams/Downloads/Marlins Schedule.csv')
+with test_doc as f:
+    reader = csv.reader(f)
+    your_list = list(reader)
+    for i in your_list:
+        create_blackout(*i)
+
+
