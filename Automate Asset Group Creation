@@ -1,0 +1,66 @@
+from __future__ import print_function
+import rapid7vmconsole
+import base64
+import logging
+import sys
+import requests
+import xlrd
+
+config = rapid7vmconsole.Configuration(name='Rapid7')
+config.username = 'twilliams_7yhf4'
+config.password = '(Z74gdSckq5myvWiLQ'
+config.host = 'https://rapid7.mlbcsi.com:3780'
+config.verify_ssl = False
+config.assert_hostname = False
+config.proxy = None
+config.ssl_ca_cert = None
+config.connection_pool_maxsize = None
+config.cert_file = None
+config.key_file = None
+config.safe_chars_for_path_param = ''
+
+# Logging
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+ch = logging.StreamHandler(sys.stdout)
+ch.setLevel(logging.INFO)
+logger.addHandler(ch)
+config.debug = False
+
+
+auth = "%s:%s" % (config.username, config.password)
+auth = base64.b64encode(auth.encode('ascii')).decode()
+client = rapid7vmconsole.ApiClient(configuration=config)
+client.default_headers['Authorization'] = "Basic %s" % auth
+
+#url = "https://rapid7.mlbcsi.com:3780/api/3/asset_groups/"
+
+
+def create_group(name, lower, upper):
+    asset_api = rapid7vmconsole.AssetGroupApi(client)
+    asset_group = rapid7vmconsole.AssetGroup(name=name, type='dynamic', description='Test Asset Group', vulnerabilities='unknown', search_criteria={
+        "filters":
+            [{"field": "ip-address",
+           "operator": "in-range",
+           "lower": lower,
+           "upper": upper},
+             {"operator": "starts-with",
+              "field": "custom-tag",
+           "value": "CVE"},
+           {"field": "custom-tag",
+           "operator": "is-not",
+           "value": "honeypot"}],
+       "match": "all"},)
+    created_group = asset_api.create_asset_group(asset_group=asset_group)
+    print(created_group)
+
+loc = ("/Users/trent.williams/Documents/dbacks_asset_group.xlsx")
+
+wb = xlrd.open_workbook(loc)
+sheet = wb.sheet_by_index(0)
+my_list = []
+for row in range(1,sheet.nrows):
+    my_list.append(sheet.row_values(row))
+print(my_list)
+for i in my_list:
+    create_group(*i)
