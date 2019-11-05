@@ -29,9 +29,9 @@ driver.get(url)
 driver.implicitly_wait(20)
 
 userElem = driver.find_element_by_id("nexposeccusername")
-userElem.send_keys("twilliams_7yhf4")
+userElem.send_keys("usernmane")
 passElem = driver.find_element_by_id("nexposeccpassword")
-passElem.send_keys("(Z74gdSckq5myvWiLQ")
+passElem.send_keys("password")
 loginElem = driver.find_element_by_id("login_button").click()
 
 def create_blackout(date, hour, minute, duration):
