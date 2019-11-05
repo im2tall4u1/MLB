@@ -7,8 +7,8 @@ import requests
 import xlrd
 
 config = rapid7vmconsole.Configuration(name='Rapid7')
-config.username = 'twilliams_7yhf4'
-config.password = '(Z74gdSckq5myvWiLQ'
+config.username = 'username'
+config.password = 'password'
 config.host = 'https://rapid7.mlbcsi.com:3780'
 config.verify_ssl = False
 config.assert_hostname = False
